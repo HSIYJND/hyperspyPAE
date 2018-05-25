@@ -160,6 +160,8 @@ def get_data_dtype_list(file, offset, record_by):
             ("Array", (data_types[str(data_type)], array_size)),
         ]
         shape = (array_size)
+        print('PAE dtype list array_size = {}'.format(array_size))
+        print('PAE dtype list shape = {}'.format(shape))
     elif record_by == 'image':  # Untested
         file.seek(offset + 40)
         data_type = readLEShort(file)
@@ -315,20 +317,22 @@ def load_ser_file(filename):
             data_offset = readLELong(f)
             data_offset_array = np.fromfile(f,
                                             dtype="<u4",
-                                            count=header["TotalNumberElements"][0])
+                                            count=header["ValidNumberElements"][0])
         else:
             data_offset = readLELongLong(f)
             data_offset_array = np.fromfile(f,
                                             dtype="<u8",
-                                            count=header["TotalNumberElements"][0])
+                                            count=header["ValidNumberElements"][0])
+            
         data_dtype_list, shape = get_data_dtype_list(
             f,
             data_offset,
             guess_record_by(header['DataTypeID']))
         tag_dtype_list = get_data_tag_dtype_list(header['TagTypeID'])
         f.seek(data_offset)
-        data = np.empty(header["TotalNumberElements"][0],
+        data = np.empty(header["ValidNumberElements"][0],
                         dtype=np.dtype(data_dtype_list + tag_dtype_list))
+        print('PAE type data = {}'.format(type(data.shape)))
         for i, offset in enumerate(data_offset_array):
             data[i] = np.fromfile(f,
                                   dtype=np.dtype(
@@ -337,6 +341,8 @@ def load_ser_file(filename):
             f.seek(offset)
         _logger.info("Data info:")
         log_struct_array_values(data[0])
+        print('PAE: {}'.format(data_offset_array.shape))
+        print('header valid000 = {}'.format(header["ValidNumberElements"]))
     return header, data
 
 
@@ -476,6 +482,7 @@ def ser_reader(filename, objects=None, *args, **kwds):
     header, data = load_ser_file(filename)
     record_by = guess_record_by(header['DataTypeID'])
     ndim = int(header['NumberDimensions'])
+    print('PAE: ndim = {}'.format(ndim))
     date, time = None, None
     if objects is not None:
         objects_dict = convert_xml_to_dict(objects[0])
@@ -493,9 +500,12 @@ def ser_reader(filename, objects=None, *args, **kwds):
         array_shape, axes = get_axes_from_position(header=header,
                                                    data=data)
     else:
+        print('PAE:reader')
+        print('PAE: ndim = {}'.format(ndim))
         axes = []
         array_shape = [None, ] * int(ndim)
         spatial_axes = ["x", "y"][:ndim]
+        print('PAE: array shape00 = {}'.format(array_shape))
         for i in range(ndim):
             idim = 1 + i if order == "C" else ndim - i
             if (record_by == "spectrum" or
@@ -515,9 +525,15 @@ def ser_reader(filename, objects=None, *args, **kwds):
                     'size': header['Dim-%i_DimensionSize' % idim][0],
                     'name': name,
                 })
+                #array_shape[i] = \
+                #    header['Dim-%i_DimensionSize' % idim][0]
                 array_shape[i] = \
-                    header['Dim-%i_DimensionSize' % idim][0]
+                    header['ValidNumberElements'][0]
+                print(header['Dim-%i_DimensionSize' % idim])
+                print('Dim-%i_DimensionSize' % idim)
+                print(header["ValidNumberElements"])
     # Spectral dimension
+    print('PAE: array shape0 = {}'.format(array_shape))
     if record_by == "spectrum":
         axes.append({
             'offset': data['CalibrationOffset'][0],
@@ -532,6 +548,7 @@ def ser_reader(filename, objects=None, *args, **kwds):
         axes[-1]['name'] = 'Energy'
 
         array_shape.append(data['ArrayLength'][0])
+        print('PAE: array shape = {}'.format(array_shape))
 
     elif record_by == 'image':
         if objects is not None:
@@ -569,6 +586,7 @@ def ser_reader(filename, objects=None, *args, **kwds):
             axis['units'] = '1/nm'
             axis['scale'] /= 10 ** 9
     # Remove Nones from array_shape caused by squeezing size 1 dimensions
+    print('PAE array_shape = {}'.format(array_shape))
     array_shape = [dim for dim in array_shape if dim is not None]
     lazy = kwds.pop('lazy', False)
     if lazy:
