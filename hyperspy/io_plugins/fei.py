@@ -524,7 +524,7 @@ def ser_reader(filename, objects=None, *args, **kwds):
                     header['Dim-%i_DimensionSize' % idim][0]
     
         #Deal with issue when TotalNumberElements does not equal ValidNumberElements for ndim==1
-        if ndim == 1:
+        if ndim == 1 and record_by == 'spectrum':
             array_shape[i] = header['ValidNumberElements'][0]
             axes[0]['size'] = header['ValidNumberElements'][0]
     
