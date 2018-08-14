@@ -500,8 +500,8 @@ def ser_reader(filename, objects=None, *args, **kwds):
                                                    data=data)
     else:
         #ensure ValidNumberElements is equal to the size of the scanning dimensions
-        ElementsToRead = sum([ header['Dim-%i_DimensionSize' % idim][0] for idim in range(ndim)]) 
-        assert ValidNumberElements == ElementsToRead
+        #ElementsToRead = sum([ header['Dim-%i_DimensionSize' % idim][0] for idim in range(ndim)]) 
+        #assert ValidNumberElements == ElementsToRead
         
         axes = []
         array_shape = [None, ] * int(ndim)
