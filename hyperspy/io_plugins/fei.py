@@ -160,8 +160,6 @@ def get_data_dtype_list(file, offset, record_by):
             ("Array", (data_types[str(data_type)], array_size)),
         ]
         shape = (array_size)
-        print('PAE dtype list array_size = {}'.format(array_size))
-        print('PAE dtype list shape = {}'.format(shape))
     elif record_by == 'image':  # Untested
         file.seek(offset + 40)
         data_type = readLEShort(file)
@@ -332,7 +330,6 @@ def load_ser_file(filename):
         f.seek(data_offset)
         data = np.empty(header["ValidNumberElements"][0],
                         dtype=np.dtype(data_dtype_list + tag_dtype_list))
-        print('PAE type data = {}'.format(type(data.shape)))
         for i, offset in enumerate(data_offset_array):
             data[i] = np.fromfile(f,
                                   dtype=np.dtype(
@@ -341,8 +338,6 @@ def load_ser_file(filename):
             f.seek(offset)
         _logger.info("Data info:")
         log_struct_array_values(data[0])
-        print('PAE: {}'.format(data_offset_array.shape))
-        print('header valid000 = {}'.format(header["ValidNumberElements"]))
     return header, data
 
 
@@ -585,7 +580,6 @@ def ser_reader(filename, objects=None, *args, **kwds):
             axis['units'] = '1/nm'
             axis['scale'] /= 10 ** 9
     # Remove Nones from array_shape caused by squeezing size 1 dimensions
-    print('PAE array_shape = {}'.format(array_shape))
     array_shape = [dim for dim in array_shape if dim is not None]
     lazy = kwds.pop('lazy', False)
     if lazy:
