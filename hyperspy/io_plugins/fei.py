@@ -525,13 +525,14 @@ def ser_reader(filename, objects=None, *args, **kwds):
                     'size': header['Dim-%i_DimensionSize' % idim][0],
                     'name': name,
                 })
-                #array_shape[i] = \
-                #    header['Dim-%i_DimensionSize' % idim][0]
                 array_shape[i] = \
-                    header['ValidNumberElements'][0]
-                print(header['Dim-%i_DimensionSize' % idim])
-                print('Dim-%i_DimensionSize' % idim)
-                print(header["ValidNumberElements"])
+                    header['Dim-%i_DimensionSize' % idim][0]
+    
+    #Deal with issue when TotalNumberElements does not equal ValidNumberElements for ndim==1
+    if ndim == 1:
+        array_shape[i] = header['ValidNumberElements'][0]
+        axes[0]['size'] = header['ValidNumberElements'][0]
+    
     # Spectral dimension
     if record_by == "spectrum":
         axes.append({
