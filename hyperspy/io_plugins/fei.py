@@ -482,7 +482,6 @@ def ser_reader(filename, objects=None, *args, **kwds):
     header, data = load_ser_file(filename)
     record_by = guess_record_by(header['DataTypeID'])
     ndim = int(header['NumberDimensions'])
-    print('PAE: ndim = {}'.format(ndim))
     date, time = None, None
     if objects is not None:
         objects_dict = convert_xml_to_dict(objects[0])
@@ -500,12 +499,9 @@ def ser_reader(filename, objects=None, *args, **kwds):
         array_shape, axes = get_axes_from_position(header=header,
                                                    data=data)
     else:
-        print('PAE:reader')
-        print('PAE: ndim = {}'.format(ndim))
         axes = []
         array_shape = [None, ] * int(ndim)
         spatial_axes = ["x", "y"][:ndim]
-        print('PAE: array shape00 = {}'.format(array_shape))
         for i in range(ndim):
             idim = 1 + i if order == "C" else ndim - i
             if (record_by == "spectrum" or
@@ -533,7 +529,6 @@ def ser_reader(filename, objects=None, *args, **kwds):
                 print('Dim-%i_DimensionSize' % idim)
                 print(header["ValidNumberElements"])
     # Spectral dimension
-    print('PAE: array shape0 = {}'.format(array_shape))
     if record_by == "spectrum":
         axes.append({
             'offset': data['CalibrationOffset'][0],
@@ -548,7 +543,6 @@ def ser_reader(filename, objects=None, *args, **kwds):
         axes[-1]['name'] = 'Energy'
 
         array_shape.append(data['ArrayLength'][0])
-        print('PAE: array shape = {}'.format(array_shape))
 
     elif record_by == 'image':
         if objects is not None:
